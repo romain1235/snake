@@ -96,7 +96,7 @@ function drawFood(){
 function drawSnake() {
     ctx.beginPath();
     ctx.strokeStyle = 'green';
-    ctx.lineWidth = tileSize - canvas.width / 250;
+    ctx.lineWidth = tileSize * 0.95;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     if (snake.length < 2) {
@@ -113,48 +113,36 @@ function drawSnake() {
         ctx.lineTo((animationProgress - 0.5) * tileSize, snake[0].y * tileSize + tileSize / 2);
         ctx.stroke();
         ctx.beginPath();
-        //ctx.moveTo(gridSize * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
-        //ctx.lineTo((animationProgress + (gridSize - 1)) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
         startX = (animationProgress + (gridSize - 1)) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2;
     }
     else if (direction.x === -1 && snake[0].x === gridSize - 1) {
-        console.log('here');
         ctx.moveTo(gridSize * tileSize + tileSize / 2,snake[0].y * tileSize + tileSize / 2);
         ctx.lineTo((gridSize - animationProgress) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
         ctx.stroke();
         ctx.beginPath();
-        //ctx.moveTo(-1 * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
-        //ctx.lineTo((0 - animationProgress) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
         startX = (0 - animationProgress) * tileSize + tileSize / 2;
     }
     else {
         startX = (((snake[0].x - snake[1].x) * animationProgress) + snake[1].x) * tileSize + tileSize/2;
     }
     if (direction.y === 1 && snake[0].y === 0){
-        ctx.moveTo(snake[0].x * tileSize + tileSize / 2, -1 * tileSize + tileSize / 2);
-        ctx.lineTo(snake[0].x * tileSize + tileSize / 2, ((0 - (-1 * tileSize + tileSize / 2)) * animationProgress) + (-1 * tileSize + tileSize / 2));
+        ctx.moveTo(snake[0].x * tileSize + tileSize / 2, -0.5 * tileSize);
+        ctx.lineTo(snake[0].x * tileSize + tileSize / 2, (animationProgress - 0.5) * tileSize);
         ctx.stroke();
         ctx.beginPath();
-        ctx.moveTo(snake[0].x * tileSize + tileSize / 2, gridSize * tileSize + tileSize / 2);
-        ctx.lineTo(snake[0].x * tileSize + tileSize / 2, (animationProgress + (gridSize - 1)) * tileSize + tileSize / 2);
-        ctx.stroke();
-        ctx.beginPath();
-        startY = gridSize;
+        startY = (animationProgress + (gridSize - 1)) * tileSize + tileSize / 2;
     }
     else if (direction.y === -1 && snake[0].y === gridSize - 1) {
         ctx.moveTo(snake[0].x * tileSize + tileSize / 2, gridSize * tileSize + tileSize / 2);
-        ctx.lineTo(snake[0].x * tileSize + tileSize / 2, ((gridSize - 1 - (gridSize * tileSize + tileSize / 2)) * animationProgress) + (gridSize * tileSize + tileSize / 2));
+        ctx.lineTo(snake[0].x * tileSize + tileSize / 2, (gridSize - animationProgress) * tileSize + tileSize / 2);
         ctx.stroke();
         ctx.beginPath();
-        ctx.moveTo(snake[0].x * tileSize + tileSize / 2, -1 * tileSize + tileSize / 2);
-        ctx.lineTo(snake[0].x * tileSize + tileSize / 2, (0 - animationProgress) * tileSize + tileSize / 2);
-        ctx.stroke();
-        ctx.beginPath();
-        startY = -1;
+        startY = (0 - animationProgress) * tileSize + tileSize / 2;
     }
     else {
         startY = (((snake[0].y - snake[1].y) * animationProgress) + snake[1].y) * tileSize + tileSize/2;
     }
+    
     const endX = (((snake[snake.length - 1].x - lastSnake.x) * animationProgress) + lastSnake.x) * tileSize + tileSize/2;
     const endY = (((snake[snake.length - 1].y - lastSnake.y) * animationProgress) + lastSnake.y) * tileSize + tileSize/2;
     ctx.lineTo(startX, startY);
