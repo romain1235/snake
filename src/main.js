@@ -12,7 +12,7 @@ let lenght = 3;
 let lastTimestamp = 0;
 let animationProgress = 0;
 let lastSnake = { x: 0, y: 0};
-let dirList = [{ x: 0, y: 0}];
+let nextDirection = { x: 0, y: 0};
 function resizeCanvas() {
     const minDimension = Math.min(window.innerWidth, window.innerHeight)*0.98;
     const maxCanvasSize = Math.floor(minDimension / gridSize) * gridSize;
@@ -20,6 +20,7 @@ function resizeCanvas() {
     canvas.height = maxCanvasSize;
     tileSize = maxCanvasSize / gridSize;
 }
+
 function resetGame() {
     score = 0;
     snake = [{ x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2)}];
@@ -51,9 +52,9 @@ function checkCollision() {
     return false;
 }   
 function update() {
-    if (!(dirList[dirList.length - 1].x === 0 && dirList[dirList.length - 1].y === 0)) {
-        direction = dirList[dirList.length - 1];
-        dirList.pop();
+    if (nextDirection !== undefined) {
+        direction = nextDirection;
+        nextDirection = undefined;
     }
     lastSnake = snake[snake.length - 1];
     if (direction.x === 0 && direction.y === 0) {
@@ -216,23 +217,23 @@ function spawnFood() {
 window.addEventListener('keydown', (e) => {
     switch (e.key) {
         case 'ArrowUp':
-            if (dirList[dirList.lenght - 1].y !== 1 && dirList[dirList.length - 1].y !== -1) {
-                dirList.push({ x: 0, y: -1 });
+            if(direction.y !== 1 && nextDirection === undefined) {
+                nextDirection = { x: 0, y: -1};
             }
             break;
         case 'ArrowDown':
-            if (dirList[dirList.lenght - 1].y !== -1 && dirList[dirList.length - 1].y !== 1) {
-                dirList.push({ x: 0, y: 1 });
+            if(direction.y !== -1 && nextDirection === undefined) {
+                nextDirection = { x: 0, y: 1};
             }
             break;
         case 'ArrowLeft':
-            if (direction.x !== 1 && dirList[dirList.length - 1].x !== -1) {
-                dirList.push({ x: -1, y: 0 });
+            if(direction.x !== 1 && nextDirection === undefined) {
+                nextDirection = { x: -1, y: 0};
             }
             break;
         case 'ArrowRight':
-            if (direction.x !== -1 && dirList[dirList.length - 1].x !== 1) {
-                dirList.push({ x: 1, y: 0 });
+            if(direction.x !== -1 && nextDirection === undefined) {
+                nextDirection = { x: 1, y: 0};
             }
             break;
     }
