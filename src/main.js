@@ -1,4 +1,3 @@
-
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 let gridSize = 7;
@@ -13,6 +12,22 @@ let lastTimestamp = 0;
 let animationProgress = 0;
 let lastSnake = { x: 0, y: 0};
 let nextDirection = { x: 0, y: 0};
+const snakeHead = document.createElement('img')
+snakeHead.src = "/src/snakeHead3.svg"
+
+function drawHead(x, y, direction){
+    ctx.save();
+    if (direction.x === 1) ctx.rotate(0);
+    if (direction.x === -1) ctx.rotate(Math.PI);
+    if (direction.y === 1) ctx.rotate(Math.PI / 2); 
+    if (direction.y === -1) ctx.rotate(-Math.PI / 2);
+    ctx.drawImage(snakeHead, 0, 0, 10, 10, x, y, tileSize, tileSize);
+    //ctx.drawImage(snakeHeadImage, 0, 0, 10, 10, 10, 10, 30, 30);
+    //ctx.drawImage(snakeHeadImage, 0, 0, 10, 10, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, tileSize, tileSize);
+    ctx.restore();
+}
+
+
 function resizeCanvas() {
     const minDimension = Math.min(window.innerWidth, window.innerHeight)*0.98;
     const maxCanvasSize = Math.floor(minDimension / gridSize) * gridSize;
@@ -109,7 +124,6 @@ function drawSnake() {
     let startX, startY;
     let endX, endY;
     if (direction.x === 1 && snake[0].x === 0){
-        console.log('here2');
         ctx.moveTo(-0.5 * tileSize, snake[0].y * tileSize + tileSize / 2);
         ctx.lineTo((animationProgress - 0.5) * tileSize, snake[0].y * tileSize + tileSize / 2);
         ctx.stroke();
@@ -184,7 +198,6 @@ function drawSnake() {
         const curr = snake[i];
         const next = snake[i + 1];
         if ((Math.abs(curr.x - next.x) > 1 || Math.abs(curr.y - next.y) > 1) && i!==0) {
-            console.log(i, curr, next);
             if (curr.x === next.x) {
                 dirX = 0;
             }
@@ -207,6 +220,7 @@ function drawSnake() {
     };
     ctx.lineTo(endX, endY);
     ctx.stroke();
+    drawHead(startX, startY, direction);
 }
 function gameLoop(timestamp) {
     const deltaTime = timestamp - lastTimestamp;
@@ -263,4 +277,7 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 resetGame();
-requestAnimationFrame(gameLoop);
+
+snakeHead.onload = () => {
+    requestAnimationFrame(gameLoop);
+}
