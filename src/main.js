@@ -107,6 +107,7 @@ function drawSnake() {
     }
     let dirX, dirY;
     let startX, startY;
+    let endX, endY;
     if (direction.x === 1 && snake[0].x === 0){
         console.log('here2');
         ctx.moveTo(-0.5 * tileSize, snake[0].y * tileSize + tileSize / 2);
@@ -142,9 +143,40 @@ function drawSnake() {
     else {
         startY = (((snake[0].y - snake[1].y) * animationProgress) + snake[1].y) * tileSize + tileSize/2;
     }
-    
-    const endX = (((snake[snake.length - 1].x - lastSnake.x) * animationProgress) + lastSnake.x) * tileSize + tileSize/2;
-    const endY = (((snake[snake.length - 1].y - lastSnake.y) * animationProgress) + lastSnake.y) * tileSize + tileSize/2;
+    if (snake[snake.length - 1].x === 0 && direction.x === 1) {
+        ctx.moveTo(gridSize * tileSize + tileSize / 2, snake[snake.length - 1].y * tileSize + tileSize / 2);
+        ctx.lineTo((gridSize - (1 - animationProgress)) * tileSize + tileSize / 2, snake[snake.length - 1].y * tileSize + tileSize / 2);
+        ctx.stroke();
+        ctx.beginPath();
+        endX = (-0.5 + animationProgress) * tileSize;
+    }
+    else if (snake[snake.length - 1].x === gridSize - 1 && direction.x === -1) {
+        ctx.moveTo(-0.5 * tileSize, snake[snake.length - 1].y * tileSize + tileSize / 2);
+        ctx.lineTo((0.5 - animationProgress) * tileSize, snake[snake.length - 1].y * tileSize + tileSize / 2);
+        ctx.stroke();
+        ctx.beginPath();
+        endX = ((gridSize - animationProgress)) * tileSize + tileSize / 2;
+    }
+    else {
+        endX = (((snake[snake.length - 1].x - lastSnake.x) * animationProgress) + lastSnake.x) * tileSize + tileSize/2;
+    }
+    if (snake[snake.length - 1].y === 0 && direction.y === 1) {
+        ctx.moveTo(snake[snake.length - 1].x * tileSize + tileSize / 2, gridSize * tileSize + tileSize / 2);
+        ctx.lineTo(snake[snake.length - 1].x * tileSize + tileSize / 2, (gridSize - (1 - animationProgress)) * tileSize + tileSize / 2);
+        ctx.stroke();
+        ctx.beginPath();
+        endY = (-0.5 + animationProgress) * tileSize;
+    }
+    else if (snake[snake.length - 1].y === gridSize - 1 && direction.y === -1) {
+        ctx.moveTo(snake[snake.length - 1].x * tileSize + tileSize / 2, -0.5 * tileSize);
+        ctx.lineTo(snake[snake.length - 1].x * tileSize + tileSize / 2, (0.5 - animationProgress) * tileSize);
+        ctx.stroke();
+        ctx.beginPath();
+        endY = ((gridSize - animationProgress)) * tileSize + tileSize / 2;
+    }
+    else {
+        endY = (((snake[snake.length - 1].y - lastSnake.y) * animationProgress) + lastSnake.y) * tileSize + tileSize/2;
+    }
     ctx.lineTo(startX, startY);
     for (let i = 0; i < snake.length - 1; i++) {
         const curr = snake[i];
@@ -176,7 +208,7 @@ function drawSnake() {
 }
 function gameLoop(timestamp) {
     const deltaTime = timestamp - lastTimestamp;
-    animationProgress += deltaTime / 1700;
+    animationProgress += deltaTime / 1400;
     if (animationProgress > 1) {
         animationProgress = 0;
         update();
