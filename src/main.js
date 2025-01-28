@@ -1,6 +1,6 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-let gridSize = 7;
+let gridSize = 15;
 let tileSize = canvas.width / gridSize;
 let score = 0;
 let bestScore = 0;
@@ -13,17 +13,18 @@ let animationProgress = 0;
 let lastSnake = { x: 0, y: 0};
 let nextDirection = { x: 0, y: 0};
 const snakeHead = document.createElement('img')
-snakeHead.src = "/src/snakeHead3.svg"
+snakeHead.src = "/src/snakeHead.svg"
+const appleImage = document.createElement('img')
+appleImage.src = "/src/apple.svg"
 
 function drawHead(x, y, direction){
     ctx.save();
-    if (direction.x === 1) ctx.rotate(0);
-    if (direction.x === -1) ctx.rotate(Math.PI);
-    if (direction.y === 1) ctx.rotate(Math.PI / 2); 
-    if (direction.y === -1) ctx.rotate(-Math.PI / 2);
-    ctx.drawImage(snakeHead, 0, 0, 10, 10, x, y, tileSize, tileSize);
-    //ctx.drawImage(snakeHeadImage, 0, 0, 10, 10, 10, 10, 30, 30);
-    //ctx.drawImage(snakeHeadImage, 0, 0, 10, 10, x * tileSize + tileSize / 2, y * tileSize + tileSize / 2, tileSize, tileSize);
+    ctx.translate(x, y);
+    if (direction.y === -1) ctx.rotate(0);
+    if (direction.x === 1) ctx.rotate(Math.PI / 2);
+    if (direction.x === -1) ctx.rotate(-Math.PI / 2); 
+    if (direction.y === 1) ctx.rotate(Math.PI);
+    ctx.drawImage(snakeHead, 0, 0, 10, 10, 0 - tileSize / 2, 0 - tileSize / 2, tileSize, tileSize);
     ctx.restore();
 }
 
@@ -105,8 +106,7 @@ function update() {
     }
 }
 function drawFood(){
-    ctx.fillStyle = 'red';
-    ctx.fillRect(food.x * tileSize, food.y * tileSize, tileSize, tileSize);
+    ctx.drawImage(appleImage, 0, 0, 20, 20, food.x * tileSize, food.y * tileSize, tileSize, tileSize);
 }
 function drawSnake() {
     ctx.beginPath();
@@ -118,6 +118,7 @@ function drawSnake() {
         ctx.moveTo(snake[0].x * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
         ctx.lineTo(snake[0].x * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
         ctx.stroke();
+        drawHead(snake[0].x * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2, direction);
         return;
     }
     let dirX, dirY;
@@ -127,6 +128,7 @@ function drawSnake() {
         ctx.moveTo(-0.5 * tileSize, snake[0].y * tileSize + tileSize / 2);
         ctx.lineTo((animationProgress - 0.5) * tileSize, snake[0].y * tileSize + tileSize / 2);
         ctx.stroke();
+        drawHead((animationProgress - 0.5) * tileSize, snake[0].y * tileSize + tileSize / 2, direction);
         ctx.beginPath();
         startX = (animationProgress + (gridSize - 1)) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2;
     }
@@ -134,6 +136,7 @@ function drawSnake() {
         ctx.moveTo(gridSize * tileSize + tileSize / 2,snake[0].y * tileSize + tileSize / 2);
         ctx.lineTo((gridSize - animationProgress) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
         ctx.stroke();
+        drawHead((gridSize - animationProgress) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2, direction);
         ctx.beginPath();
         startX = (0 - animationProgress) * tileSize + tileSize / 2;
     }
@@ -144,6 +147,7 @@ function drawSnake() {
         ctx.moveTo(snake[0].x * tileSize + tileSize / 2, -0.5 * tileSize);
         ctx.lineTo(snake[0].x * tileSize + tileSize / 2, (animationProgress - 0.5) * tileSize);
         ctx.stroke();
+        drawHead(snake[0].x * tileSize + tileSize / 2, (animationProgress - 0.5) * tileSize, direction);
         ctx.beginPath();
         startY = (animationProgress + (gridSize - 1)) * tileSize + tileSize / 2;
     }
@@ -151,6 +155,7 @@ function drawSnake() {
         ctx.moveTo(snake[0].x * tileSize + tileSize / 2, gridSize * tileSize + tileSize / 2);
         ctx.lineTo(snake[0].x * tileSize + tileSize / 2, (gridSize - animationProgress) * tileSize + tileSize / 2);
         ctx.stroke();
+        drawHead(snake[0].x * tileSize + tileSize / 2, (gridSize - animationProgress) * tileSize + tileSize / 2, direction);
         ctx.beginPath();
         startY = (0 - animationProgress) * tileSize + tileSize / 2;
     }
@@ -224,7 +229,7 @@ function drawSnake() {
 }
 function gameLoop(timestamp) {
     const deltaTime = timestamp - lastTimestamp;
-    animationProgress += deltaTime / 1400;
+    animationProgress += deltaTime / 140;
     if (animationProgress > 1) {
         animationProgress = 0;
         update();
@@ -272,6 +277,7 @@ window.addEventListener('keydown', (e) => {
                 nextDirection = { x: 1, y: 0};
             }
             break;
+        
     }
 });
 window.addEventListener('resize', resizeCanvas);
