@@ -1,28 +1,89 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+<script setup>
+import { vShow } from 'vue';
+import { ref, onMounted } from 'vue'
+let canvas = undefined;
+let ctx = undefined;
 let gridSize = 15;
-let tileSize = canvas.width / gridSize;
+let tileSize = 0;
+onMounted(() => {
+    canvas = document.getElementById('canvas');
+    ctx = canvas.getContext('2d');
+    gridSize = 15;
+    tileSize = canvas.width / gridSize;
+    window.addEventListener('keydown', (e) => {
+        switch (e.key) {
+            case 'ArrowUp':
+                changeDirection({ x: 0, y: -1 });
+                break;
+            case 'ArrowDown':
+                if (direction.y !== -1) {
+                    changeDirection({ x: 0, y: 1 });
+                }
+                break;
+            case 'ArrowLeft':
+                if (direction.x !== 1) {
+                    changeDirection({ x: -1, y: 0 });
+                }
+                break;
+            case 'ArrowRight':
+                if (direction.x !== -1) {
+                    changeDirection({ x: 1, y: 0 });
+                }
+                break;
+
+        }
+    });
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+    });
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    resetGame();
+    console.log("after reset")
+
+    snakeHead.onload = () => {
+        console.log("snakeHead loaded")
+        requestAnimationFrame(gameLoop);
+    }
+    canvas.addEventListener('click', (e) => {
+        pauseSize = (canvas.width / 20) * pauseSizeModifier;
+        margin = canvas.width / 50 - ((pauseSize - canvas.width / 20) / 2);
+        if (dist(mouseX - (canvas.width - (pauseSize / 2) - margin), mouseY - (pauseSize / 2 + margin)) < pauseSize / 1.4) {
+            dialog.value = true;
+        }
+    });
+})
 let score = 0;
-let bestScore = 0;
-let food = { x: 0, y: 0};
-let snake = [{ x: 0, y: 0}];
-let direction = { x: 0, y: 0};
+let bestScore = localStorage.getItem("bestScore") ? parseInt(localStorage.getItem("bestScore")) : 0;
+let food = { x: 0, y: 0 };
+let snake = [{ x: 0, y: 0 }];
+let direction = { x: 0, y: 0 };
 let lenght = 3;
 let lastTimestamp = 0;
 let animationProgress = 0;
-let lastSnake = { x: 0, y: 0};
-let nextDirection = { x: 0, y: 0};
+let lastSnake = { x: 0, y: 0 };
+let nextDirection = { x: 0, y: 0 };
+let nextDirection2 = { x: 0, y: 0 };
+let pauseSizeModifier = 1;
+let pauseSize = 0;
+let margin = 0;
+let mouseX;
+let mouseY;
 const snakeHead = document.createElement('img')
-snakeHead.src = "/src/snakeHead.svg"
+snakeHead.src = "/src/assets/snakeHead.svg"
 const appleImage = document.createElement('img')
-appleImage.src = "/src/apple.svg"
+appleImage.src = "/src/assets/apple.svg"
+const pauseImage = document.createElement('img')
+pauseImage.src = "/src/assets/pause.svg"
 
-function drawHead(x, y, direction){
+function drawHead(x, y, direction) {
     ctx.save();
     ctx.translate(x, y);
     if (direction.y === -1) ctx.rotate(0);
     if (direction.x === 1) ctx.rotate(Math.PI / 2);
-    if (direction.x === -1) ctx.rotate(-Math.PI / 2); 
+    if (direction.x === -1) ctx.rotate(-Math.PI / 2);
     if (direction.y === 1) ctx.rotate(Math.PI);
     ctx.drawImage(snakeHead, 0, 0, 10, 10, 0 - tileSize / 2, 0 - tileSize / 2, tileSize, tileSize);
     ctx.restore();
@@ -30,19 +91,20 @@ function drawHead(x, y, direction){
 
 
 function resizeCanvas() {
-    const minDimension = Math.min(window.innerWidth, window.innerHeight)*0.98;
+    const minDimension = Math.min(window.innerWidth, window.innerHeight) * 0.98;
     const maxCanvasSize = Math.floor(minDimension / gridSize) * gridSize;
     canvas.width = maxCanvasSize;
     canvas.height = maxCanvasSize;
     tileSize = maxCanvasSize / gridSize;
 }
-
-function resetGame() {
+const resetGame = () => {
+    console.log("resetGame")
     score = 0;
-    snake = [{ x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2)}];
-    direction = { x: 0, y: 0};
+    snake = [{ x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) }];
+    direction = { x: 0, y: 0 };
+    nextDirection = undefined;
+    nextDirection2 = undefined;
     lenght = 3;
-    dirList = [{ x: 0, y: 0}];
     spawnFood();
 }
 function drawBackground() {
@@ -55,9 +117,9 @@ function drawBackground() {
 }
 function drawScore() {
     ctx.fillStyle = 'white';
-    ctx.font = `${canvas.width/30}px Arial`;
-    ctx.fillText('Score: ' + score, canvas.width/60, canvas.width/25); 
-    ctx.fillText('Best Score: ' + bestScore, canvas.width/60, canvas.width/12);
+    ctx.font = `${canvas.width / 30}px Arial`;
+    ctx.fillText('Score: ' + score, canvas.width / 60, canvas.width / 25);
+    ctx.fillText('Best Score: ' + bestScore, canvas.width / 60, canvas.width / 12);
 }
 function checkCollision() {
     for (let i = 1; i < snake.length; i++) {
@@ -66,17 +128,21 @@ function checkCollision() {
         }
     }
     return false;
-}   
+}
 function update() {
     if (nextDirection !== undefined) {
         direction = nextDirection;
         nextDirection = undefined;
     }
+    if (nextDirection2 !== undefined) {
+        nextDirection = nextDirection2;
+        nextDirection2 = undefined;
+    }
     lastSnake = snake[snake.length - 1];
     if (direction.x === 0 && direction.y === 0) {
         return;
     }
-    head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y, dirX: direction.x, dirY: direction.y};
+    const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y, dirX: direction.x, dirY: direction.y };
     if (head.x < 0) {
         head.x = gridSize - 1;
     }
@@ -101,11 +167,13 @@ function update() {
     if (checkCollision()) {
         if (score > bestScore) {
             bestScore = score;
+            localStorage.setItem("bestScore", bestScore);
         }
+        dialog2.value = true;
         resetGame();
     }
 }
-function drawFood(){
+function drawFood() {
     ctx.drawImage(appleImage, 0, 0, 20, 20, food.x * tileSize, food.y * tileSize, tileSize, tileSize);
 }
 function drawSnake() {
@@ -124,7 +192,7 @@ function drawSnake() {
     let dirX, dirY;
     let startX, startY;
     let endX, endY;
-    if (direction.x === 1 && snake[0].x === 0){
+    if (direction.x === 1 && snake[0].x === 0) {
         ctx.moveTo(-0.5 * tileSize, snake[0].y * tileSize + tileSize / 2);
         ctx.lineTo((animationProgress - 0.5) * tileSize, snake[0].y * tileSize + tileSize / 2);
         ctx.stroke();
@@ -133,7 +201,7 @@ function drawSnake() {
         startX = (animationProgress + (gridSize - 1)) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2;
     }
     else if (direction.x === -1 && snake[0].x === gridSize - 1) {
-        ctx.moveTo(gridSize * tileSize + tileSize / 2,snake[0].y * tileSize + tileSize / 2);
+        ctx.moveTo(gridSize * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
         ctx.lineTo((gridSize - animationProgress) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2);
         ctx.stroke();
         drawHead((gridSize - animationProgress) * tileSize + tileSize / 2, snake[0].y * tileSize + tileSize / 2, direction);
@@ -141,9 +209,9 @@ function drawSnake() {
         startX = (0 - animationProgress) * tileSize + tileSize / 2;
     }
     else {
-        startX = (((snake[0].x - snake[1].x) * animationProgress) + snake[1].x) * tileSize + tileSize/2;
+        startX = (((snake[0].x - snake[1].x) * animationProgress) + snake[1].x) * tileSize + tileSize / 2;
     }
-    if (direction.y === 1 && snake[0].y === 0){
+    if (direction.y === 1 && snake[0].y === 0) {
         ctx.moveTo(snake[0].x * tileSize + tileSize / 2, -0.5 * tileSize);
         ctx.lineTo(snake[0].x * tileSize + tileSize / 2, (animationProgress - 0.5) * tileSize);
         ctx.stroke();
@@ -160,7 +228,7 @@ function drawSnake() {
         startY = (0 - animationProgress) * tileSize + tileSize / 2;
     }
     else {
-        startY = (((snake[0].y - snake[1].y) * animationProgress) + snake[1].y) * tileSize + tileSize/2;
+        startY = (((snake[0].y - snake[1].y) * animationProgress) + snake[1].y) * tileSize + tileSize / 2;
     }
     dirX = snake[snake.length - 1].dirX
     dirY = snake[snake.length - 1].dirY
@@ -179,7 +247,7 @@ function drawSnake() {
         endX = ((gridSize - animationProgress)) * tileSize + tileSize / 2;
     }
     else {
-        endX = (((snake[snake.length - 1].x - lastSnake.x) * animationProgress) + lastSnake.x) * tileSize + tileSize/2;
+        endX = (((snake[snake.length - 1].x - lastSnake.x) * animationProgress) + lastSnake.x) * tileSize + tileSize / 2;
     }
     if (snake[snake.length - 1].y === 0 && dirY === 1) {
         ctx.moveTo(snake[snake.length - 1].x * tileSize + tileSize / 2, gridSize * tileSize + tileSize / 2);
@@ -196,13 +264,13 @@ function drawSnake() {
         endY = ((gridSize - animationProgress)) * tileSize + tileSize / 2;
     }
     else {
-        endY = (((snake[snake.length - 1].y - lastSnake.y) * animationProgress) + lastSnake.y) * tileSize + tileSize/2;
+        endY = (((snake[snake.length - 1].y - lastSnake.y) * animationProgress) + lastSnake.y) * tileSize + tileSize / 2;
     }
     ctx.lineTo(startX, startY);
     for (let i = 0; i < snake.length - 1; i++) {
         const curr = snake[i];
         const next = snake[i + 1];
-        if ((Math.abs(curr.x - next.x) > 1 || Math.abs(curr.y - next.y) > 1) && i!==0) {
+        if ((Math.abs(curr.x - next.x) > 1 || Math.abs(curr.y - next.y) > 1) && i !== 0) {
             if (curr.x === next.x) {
                 dirX = 0;
             }
@@ -215,35 +283,54 @@ function drawSnake() {
             else {
                 dirY = (curr.y - next.y) / Math.abs(curr.y - next.y);
             }
-            ctx.lineTo(((curr.x + dirX) * tileSize) + (tileSize/2), ((curr.y + dirY) * tileSize) + (tileSize/2));
+            ctx.lineTo(((curr.x + dirX) * tileSize) + (tileSize / 2), ((curr.y + dirY) * tileSize) + (tileSize / 2));
             ctx.stroke();
             ctx.beginPath();
-            ctx.lineTo(((next.x - dirX) * tileSize) + (tileSize/2), ((next.y - dirY) * tileSize) + (tileSize/2));
+            ctx.lineTo(((next.x - dirX) * tileSize) + (tileSize / 2), ((next.y - dirY) * tileSize) + (tileSize / 2));
         }
-        ctx.lineTo((next.x * tileSize) + (tileSize/2), (next.y * tileSize) + (tileSize/2));    
-        
+        ctx.lineTo((next.x * tileSize) + (tileSize / 2), (next.y * tileSize) + (tileSize / 2));
+
     };
     ctx.lineTo(endX, endY);
     ctx.stroke();
     drawHead(startX, startY, direction);
 }
 function gameLoop(timestamp) {
-    const deltaTime = timestamp - lastTimestamp;
-    animationProgress += deltaTime / 140;
-    if (animationProgress > 1) {
-        animationProgress = 0;
-        update();
+    if (!dialog.value && !dialog2.value) {
+        const deltaTime = timestamp - lastTimestamp;
+        animationProgress += deltaTime / 140;
+        if (animationProgress > 1) {
+            animationProgress = 0;
+            update();
+        }
     }
     draw();
     requestAnimationFrame(gameLoop);
     lastTimestamp = timestamp;
 }
-function draw(){
+function dist(x, y) {
+    return Math.sqrt(x * x + y * y);
+}
+function pauseButton() {
+    pauseSize = (canvas.width / 20) * pauseSizeModifier;
+    margin = canvas.width / 50 - ((pauseSize - canvas.width / 20) / 2);
+    if (dist(mouseX - (canvas.width - (pauseSize / 2) - margin), mouseY - (pauseSize / 2 + margin)) < pauseSize / 1.4) {
+        pauseSizeModifier += (1.2 - pauseSizeModifier) / 3;
+    }
+    else {
+        pauseSizeModifier += (1 - pauseSizeModifier) / 3;
+    }
+    ctx.drawImage(pauseImage, 0, 0, 15, 15, canvas.width - pauseSize - margin, margin, pauseSize, pauseSize);
+}
+
+
+function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBackground();
     drawSnake();
     drawFood();
     drawScore();
+    pauseButton();
 }
 function spawnFood() {
     food.x = Math.floor(Math.random() * gridSize);
@@ -255,35 +342,66 @@ function spawnFood() {
         }
     }
 }
-window.addEventListener('keydown', (e) => {
-    switch (e.key) {
-        case 'ArrowUp':
-            if(direction.y !== 1 && nextDirection === undefined) {
-                nextDirection = { x: 0, y: -1};
-            }
-            break;
-        case 'ArrowDown':
-            if(direction.y !== -1 && nextDirection === undefined) {
-                nextDirection = { x: 0, y: 1};
-            }
-            break;
-        case 'ArrowLeft':
-            if(direction.x !== 1 && nextDirection === undefined) {
-                nextDirection = { x: -1, y: 0};
-            }
-            break;
-        case 'ArrowRight':
-            if(direction.x !== -1 && nextDirection === undefined) {
-                nextDirection = { x: 1, y: 0};
-            }
-            break;
-        
+function changeDirection(dir) {
+    if (dir.y === 0) {
+        if (direction.x !== 0 - dir.x && nextDirection === undefined) {
+            nextDirection = dir;
+        }
+        else if (nextDirection.x !== 0 - dir.x && nextDirection2 === undefined) {
+            nextDirection2 = dir;
+        }
     }
-});
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-resetGame();
-
-snakeHead.onload = () => {
-    requestAnimationFrame(gameLoop);
+    else {
+        if (direction.y !== 0 - dir.y && nextDirection === undefined) {
+            nextDirection = dir;
+        }
+        else if (nextDirection.y !== 0 - dir.y && nextDirection2 === undefined) {
+            nextDirection2 = dir;
+        }
+    }
 }
+const continueGame = () => {
+    dialog.value = false;
+}
+const restartGame = () => {
+    resetGame();
+    dialog.value = false;
+    dialog2.value = false;
+}
+
+const dialog = ref(false);
+const dialog2 = ref(false);
+</script>
+<template>
+    <canvas id="canvas"></canvas>
+    <v-dialog v-model="dialog" max-width="300">
+        <v-card style="background-color: #122959; color: white; text-align: center;">
+            <v-card-title>Game Paused</v-card-title>
+            <v-card-actions style="display: inline; padding: 25px;">
+                <div>
+                    <v-btn text="continue" @click="continueGame"
+                        style="border: 2px solid; background-color: green; border-color: black;"></v-btn>
+                </div>
+                <br>
+                <div>
+                    <v-btn text="restart" @click="restartGame"
+                        style="border: 2px solid; background-color: green; border-color: black;"></v-btn>
+                </div>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="dialog2" max-width="300">
+        <v-card style="background-color: #122959; color: white; text-align: center;">
+            <v-card-title>Game over</v-card-title>
+            <v-card-actions style="display: inline; padding: 25px;">
+                <div>
+                    <v-btn text="restart" @click="restartGame"
+                        style="border: 2px solid; background-color: green; border-color: black;"></v-btn>
+                </div>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+</template>
+
+<style scoped></style>
