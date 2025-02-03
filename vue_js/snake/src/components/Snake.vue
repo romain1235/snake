@@ -1,6 +1,9 @@
 <script setup>
 import { vShow } from 'vue';
 import { ref, onMounted } from 'vue'
+import headUrl from '../assets/snakeHead.svg'
+import appleUrl from '../assets/apple.svg'
+import pauseUrl from '../assets/pause.svg'
 let canvas = undefined;
 let ctx = undefined;
 let gridSize = 15;
@@ -72,11 +75,11 @@ let margin = 0;
 let mouseX;
 let mouseY;
 const snakeHead = document.createElement('img')
-snakeHead.src = "/src/assets/snakeHead.svg"
+snakeHead.src = headUrl
 const appleImage = document.createElement('img')
-appleImage.src = "/src/assets/apple.svg"
+appleImage.src = appleUrl
 const pauseImage = document.createElement('img')
-pauseImage.src = "/src/assets/pause.svg"
+pauseImage.src = pauseUrl
 
 function drawHead(x, y, direction) {
     ctx.save();
