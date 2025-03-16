@@ -1,10 +1,9 @@
 <script setup>
-import Snake from './components/Snake.vue'
 
 </script>
 
 <template>
-  <Snake/>
+  <RouterView/>
 </template>
 
 <style scoped>

@@ -1,9 +1,9 @@
 <script setup>
 import { vShow } from 'vue';
 import { ref, onMounted } from 'vue'
-import headUrl from '../assets/snakeHead.svg'
-import appleUrl from '../assets/apple.svg'
-import pauseUrl from '../assets/pause.svg'
+import headUrl from '/src/assets/games_assets/snake/snakeHead.svg'
+import appleUrl from '/src/assets/games_assets/snake/apple.svg'
+import pauseUrl from '/src/assets/games_assets/snake/pause.svg'
 let canvas = undefined;
 let ctx = undefined;
 let gridSize = 15;
@@ -32,6 +32,9 @@ onMounted(() => {
                 if (direction.x !== -1) {
                     changeDirection({ x: 1, y: 0 });
                 }
+                break;
+            case ' ':
+                dialog.value = !dialog.value;
                 break;
 
         }
@@ -377,34 +380,44 @@ const dialog2 = ref(false);
 </script>
 <template>
     <canvas id="canvas"></canvas>
-    <v-dialog v-model="dialog" max-width="300">
-        <v-card style="background-color: #122959; color: white; text-align: center;">
-            <v-card-title>Game Paused</v-card-title>
-            <v-card-actions style="display: inline; padding: 25px;">
-                <div>
-                    <v-btn text="continue" @click="continueGame"
-                        style="border: 2px solid; background-color: green; border-color: black;"></v-btn>
-                </div>
-                <br>
-                <div>
-                    <v-btn text="restart" @click="restartGame"
-                        style="border: 2px solid; background-color: green; border-color: black;"></v-btn>
-                </div>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+    <a-modal 
+        v-model:open="dialog"
+        :footer="null"
+        :centered="true"
+        :closable="false"
+        :width="300"
+        >
+        <template #title>
+            <h3 style="text-align: center;">Game Paused</h3>
+        </template>
+        <a-flex vertical justify="space-around" align="center" gap="small">
+            <a-button @click="continueGame"
+                style="border: 2px solid; background-color: green; border-color: black;">
+                Continue
+            </a-button>
 
-    <v-dialog v-model="dialog2" max-width="300">
-        <v-card style="background-color: #122959; color: white; text-align: center;">
-            <v-card-title>Game over</v-card-title>
-            <v-card-actions style="display: inline; padding: 25px;">
-                <div>
-                    <v-btn text="restart" @click="restartGame"
-                        style="border: 2px solid; background-color: green; border-color: black;"></v-btn>
-                </div>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+            <a-button @click="restartGame"
+                style="border: 2px solid; background-color: green; border-color: black;">
+                Restart
+            </a-button>
+        </a-flex>
+    </a-modal>
+
+    <a-modal v-model:open="dialog2"
+        :footer="null" 
+        :centered="true" 
+        :closable="false"
+        :width="300">
+        <template #title>
+            <h3 style="text-align: center;">Game Over</h3>
+        </template>
+        <a-flex vertical justify="space-around" align="center" gap="small">
+            <a-button @click="restartGame"
+                style="border: 2px solid; background-color: green; border-color: black;">
+                Restart
+            </a-button>
+        </a-flex>
+    </a-modal>
 </template>
 
 <style scoped></style>
